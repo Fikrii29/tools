@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MLBB Tools — Cek Akun Mobile Legends</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Oxanium:wght@300;400;600;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+<style>
+  :root{--bg:#080c14;--bg2:#0d1421;--bg3:#111827;--accent:#00d4ff;--accent2:#ff6b35;--text:#e8f4ff;--text-muted:#6b8aad;--border:rgba(0,212,255,.15);--win:#00ff88;--lose:#ff4466}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:16px;min-height:100vh;overflow-x:hidden}
+  body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 20% -10%,rgba(0,212,255,.08) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 80% 100%,rgba(255,107,53,.06) 0%,transparent 60%);pointer-events:none;z-index:0}
+  #auth-screen{display:flex;min-height:100vh;align-items:center;justify-content:center;padding:1rem;position:relative;z-index:1}
+  .auth-box{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:2rem;width:100%;max-width:400px}
+  .logo-text{font-family:'Oxanium',sans-serif;font-size:2rem;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:3px;display:block;text-align:center}
+  .logo-sub{font-size:.75rem;color:var(--text-muted);letter-spacing:4px;text-transform:uppercase;text-align:center;margin-top:2px;margin-bottom:1.5rem;display:block}
+  .auth-tabs{display:flex;background:var(--bg3);border-radius:8px;padding:3px;margin-bottom:1.25rem}
+  .auth-tab{flex:1;padding:.5rem;background:none;border:none;color:var(--text-muted);font-family:'Rajdhani',sans-serif;font-size:.95rem;font-weight:600;cursor:pointer;border-radius:6px;transition:all .2s}
+  .auth-tab.active{background:var(--accent);color:var(--bg)}
+  .input-group{margin-bottom:.9rem}
+  .input-group label{display:block;font-size:.8rem;color:var(--text-muted);margin-bottom:.35rem;letter-spacing:1px;text-transform:uppercase}
+  .input-group input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:.7rem 1rem;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:.95rem;outline:none;transition:border-color .2s}
+  .input-group input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(0,212,255,.1)}
+  .info-box{background:rgba(0,212,255,.05);border:1px solid var(--border);border-radius:8px;padding:.75rem;font-size:.82rem;color:var(--text-muted);line-height:1.5;margin-bottom:1rem}
+  .info-box strong{color:var(--accent)}
+  #app-screen{display:none;position:relative;z-index:1}
+  .topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+  .topbar-logo{font-family:'Oxanium',sans-serif;font-weight:800;font-size:1.2rem;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:2px}
+  .topbar-right{display:flex;align-items:center;gap:.75rem}
+  .saldo-chip{background:rgba(0,212,255,.1);border:1px solid var(--border);border-radius:20px;padding:.3rem .8rem;font-family:'Share Tech Mono',monospace;font-size:.85rem;color:var(--accent)}
+  .main-content{padding:1rem;max-width:600px;margin:0 auto}
+  .tabs-scroll{overflow-x:auto;scrollbar-width:none;margin-bottom:1rem;-webkit-overflow-scrolling:touch}
+  .tabs-scroll::-webkit-scrollbar{display:none}
+  .tabs-row{display:flex;gap:.4rem;width:max-content}
+  .tab-btn{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:.45rem .9rem;color:var(--text-muted);font-family:'Rajdhani',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .2s;letter-spacing:.5px}
+  .tab-btn.active{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+  .tab-panel{display:none}.tab-panel.active{display:block}
+  .panel-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:1rem}
+  .panel-title{font-family:'Oxanium',sans-serif;font-size:1rem;font-weight:700;color:var(--accent);margin-bottom:1rem;letter-spacing:1px;display:flex;align-items:center;gap:.5rem}
+  .price-badge{background:rgba(255,107,53,.15);border:1px solid rgba(255,107,53,.3);border-radius:20px;padding:.15rem .5rem;font-size:.7rem;color:var(--accent2);font-family:'Share Tech Mono',monospace}
+  .free-badge{background:rgba(0,255,136,.1);border:1px solid rgba(0,255,136,.3);border-radius:20px;padding:.15rem .5rem;font-size:.7rem;color:var(--win);font-family:'Share Tech Mono',monospace}
+  .btn-primary{display:block;width:100%;background:linear-gradient(135deg,var(--accent),#0099cc);border:none;border-radius:8px;padding:.75rem 1rem;color:var(--bg);font-family:'Oxanium',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;letter-spacing:1px;transition:all .2s;margin-top:.5rem}
+  .btn-primary:hover{opacity:.85;transform:translateY(-1px)}
+  .btn-ghost{display:block;width:100%;background:transparent;border:1px solid var(--border);border-radius:8px;padding:.65rem 1rem;color:var(--text-muted);font-family:'Rajdhani',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;letter-spacing:.5px;transition:all .2s}
+  .btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+  .btn-danger{background:transparent;border:1px solid rgba(255,68,102,.3);border-radius:8px;padding:.3rem .7rem;color:var(--lose);font-family:'Rajdhani',sans-serif;font-size:.8rem;font-weight:600;cursor:pointer}
+  .btn-sm{background:rgba(0,212,255,.1);border:1px solid var(--border);border-radius:6px;padding:.3rem .65rem;color:var(--accent);font-family:'Rajdhani',sans-serif;font-size:.75rem;font-weight:600;cursor:pointer;white-space:nowrap}
+  .nominal-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:.75rem}
+  .nominal-btn{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:.5rem;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:.8rem;cursor:pointer;transition:all .2s;text-align:center}
+  .nominal-btn.selected{border-color:var(--accent);color:var(--accent);background:rgba(0,212,255,.08)}
+  #result-area{display:none;margin-top:.75rem}
+  .result-card{background:var(--bg3);border:1px solid rgba(0,212,255,.2);border-radius:12px;overflow:hidden}
+  .result-header{background:linear-gradient(135deg,rgba(0,212,255,.15),transparent);padding:.75rem 1rem;font-family:'Oxanium',sans-serif;font-weight:700;font-size:.85rem;letter-spacing:2px;display:flex;align-items:center;gap:.5rem;border-bottom:1px solid var(--border)}
+  .result-grid{display:grid;grid-template-columns:1fr 1fr;padding:.75rem;gap:.5rem}
+  .result-item{display:flex;flex-direction:column;padding:.5rem .75rem;background:rgba(255,255,255,.03);border-radius:6px;border:1px solid rgba(255,255,255,.05)}
+  .result-item.full{grid-column:1/-1}
+  .rl{font-size:.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:.2rem}
+  .rv{font-size:.9rem;font-weight:600;color:var(--text)}
+  .rv.mono{font-family:'Share Tech Mono',monospace}.rv.accent{color:var(--accent)}
+  .tags{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.2rem}
+  .tag{background:rgba(0,212,255,.1);border:1px solid var(--border);border-radius:4px;padding:.15rem .4rem;font-size:.75rem;color:var(--accent)}
+  .admin-user-row{display:flex;align-items:center;justify-content:space-between;padding:.65rem .75rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);border-radius:8px;margin-bottom:.4rem;gap:.5rem}
+  .au-info{flex:1;min-width:0}
+  .au-name{display:block;font-size:.85rem;font-weight:600;color:var(--text)}
+  .au-email{display:block;font-size:.72rem;color:var(--text-muted);font-family:monospace;overflow:hidden;text-overflow:ellipsis}
+  .au-temp{display:inline-block;font-size:.65rem;color:var(--accent2);margin-top:2px}
+  .au-right{display:flex;align-items:center;gap:.5rem;flex-shrink:0}
+  .au-saldo{font-family:'Share Tech Mono',monospace;font-size:.75rem;color:var(--accent)}
+  .au-btn{background:rgba(255,107,53,.15);border:1px solid rgba(255,107,53,.3);border-radius:6px;padding:.25rem .55rem;color:var(--accent2);font-family:'Rajdhani',sans-serif;font-size:.72rem;font-weight:600;cursor:pointer;white-space:nowrap}
+  .akun-info{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:.75rem;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+  .akun-avatar{width:36px;height:36px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--bg);font-size:1rem;flex-shrink:0}
+  .captcha-hint{background:rgba(255,107,53,.08);border:1px solid rgba(255,107,53,.2);border-radius:8px;padding:.65rem .75rem;font-size:.8rem;color:var(--text-muted);margin-bottom:.75rem}
+  .captcha-hint a{color:var(--accent2);text-decoration:none;font-weight:600}
+  #loading-overlay{display:none;position:fixed;inset:0;background:rgba(8,12,20,.85);z-index:1000;align-items:center;justify-content:center;flex-direction:column;gap:1rem}
+  .loading-spinner{width:48px;height:48px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  #loading-text{font-family:'Oxanium',sans-serif;font-size:.9rem;color:var(--text-muted);letter-spacing:2px}
+  #modal{display:none;position:fixed;inset:0;background:rgba(8,12,20,.9);z-index:999;align-items:center;justify-content:center;padding:1rem}
+  .modal-box{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:1.5rem;width:100%;max-width:360px}
+  .toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.65rem 1.25rem;font-family:'Rajdhani',sans-serif;font-size:.9rem;z-index:9999;transition:transform .3s;white-space:nowrap;max-width:90vw}
+  .toast.show{transform:translateX(-50%) translateY(0)}
+  .toast.error{border-color:rgba(255,68,102,.5);color:var(--lose)}
+  .toast.success{border-color:rgba(0,255,136,.5);color:var(--win)}
+  .toast.info{border-color:var(--border);color:var(--accent)}
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <span class="logo-text">MLBB TOOLS</span>
+    <span class="logo-sub">Mobile Legends Checker</span>
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-mode="login" onclick="switchAuthMode('login')">Masuk</button>
+      <button class="auth-tab" data-mode="register" onclick="switchAuthMode('register')">Daftar</button>
+    </div>
+    <div id="reg-extra" style="display:none">
+      <div class="input-group"><label>Username</label><input type="text" id="reg-username" placeholder="Nama tampilan kamu"></div>
+    </div>
+    <div class="input-group"><label>Email</label><input type="email" id="auth-email" placeholder="email@kamu.com"></div>
+    <div class="input-group">
+      <label>Password</label>
+      <div style="position:relative">
+        <input type="password" id="auth-pass" placeholder="••••••••" style="width:100%;padding-right:3rem">
+        <button type="button" onclick="togglePw('auth-pass',this)" style="position:absolute;right:.5rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:1.2rem;padding:6px 8px;line-height:1;-webkit-tap-highlight-color:transparent;touch-action:manipulation;">&#128065;</button>
+      </div>
+    </div>
+    <label style="display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem;cursor:pointer">
+      <input type="checkbox" id="remember-me" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer">
+      <span style="font-size:.82rem;color:var(--text-muted)">Ingat saya selama 7 hari</span>
+    </label>
+    <button class="btn-primary" id="auth-login-btn" onclick="doLogin()" style="touch-action:manipulation;">🔐 MASUK</button>
+    <button class="btn-primary" id="auth-reg-btn" style="display:none;touch-action:manipulation;" onclick="doRegister()">🚀 DAFTAR SEKARANG</button>
+    <div class="info-box" style="margin-top:1rem;margin-bottom:0">Daftar langsung tanpa verifikasi email. Wajib deposit minimal <strong>Rp 5.000</strong> sebelum fitur berbayar.</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app-screen">
+  <div class="topbar">
+    <div class="topbar-logo">MLBB TOOLS</div>
+    <div class="topbar-right">
+      <div class="saldo-chip">💰 <span id="saldo-display">Rp 0</span></div>
+      <button class="btn-danger" onclick="doLogout()">Keluar</button>
+    </div>
+  </div>
+  <div class="main-content">
+    <div class="tabs-scroll"><div class="tabs-row">
+      <button class="tab-btn active" data-tab="deposit" onclick="switchTab('deposit')">💳 Deposit</button>
+      <button class="tab-btn" data-tab="profil" onclick="switchTab('profil')">👤 Profil</button>
+      <button class="tab-btn" data-tab="bind" onclick="switchTab('bind')">🔗 Bind</button>
+      <button class="tab-btn" data-tab="find" onclick="switchTab('find')">🔍 Find</button>
+      <button class="tab-btn" data-tab="reset" onclick="switchTab('reset')">🔑 Reset PW</button>
+      <button class="tab-btn" data-tab="akun" onclick="switchTab('akun')">⚙️ Akun</button>
+      <button class="tab-btn" data-tab="admin" onclick="switchTab('admin')">🛡️ Admin</button>
+    </div></div>
+
+    <!-- DEPOSIT -->
+    <div class="tab-panel active" id="tab-deposit">
+      <div class="panel-card">
+        <div class="panel-title">💳 TOPUP SALDO <span class="free-badge">QRIS ONLY</span></div>
+        <div class="info-box">Minimal deposit <strong>Rp 5.000</strong>. Saldo otomatis masuk setelah konfirmasi.</div>
+        <div class="nominal-grid">
+          <button class="nominal-btn" onclick="setNominal(5000,this)">Rp 5.000</button>
+          <button class="nominal-btn" onclick="setNominal(10000,this)">Rp 10.000</button>
+          <button class="nominal-btn" onclick="setNominal(20000,this)">Rp 20.000</button>
+          <button class="nominal-btn" onclick="setNominal(50000,this)">Rp 50.000</button>
+          <button class="nominal-btn" onclick="setNominal(100000,this)">Rp 100.000</button>
+          <button class="nominal-btn" onclick="setNominal(200000,this)">Rp 200.000</button>
+        </div>
+        <div class="input-group"><label>Nominal Custom</label><input type="number" id="nominal-deposit" placeholder="Min. Rp 5.000" min="5000"></div>
+        <button class="btn-primary" onclick="buatDeposit()">⚡ BUAT QRIS</button>
+      </div>
+    </div>
+
+    <!-- PROFIL -->
+    <div class="tab-panel" id="tab-profil">
+      <div class="panel-card">
+        <div class="panel-title">👤 CEK PROFIL <span class="price-badge">Rp 5.000</span></div>
+        <div class="input-group"><label>Player ID</label><input type="number" id="inp-profil-id" placeholder="Contoh: 123456789"></div>
+        <button class="btn-primary" onclick="cekProfil()">🔎 CEK SEKARANG</button>
+      </div>
+      <div id="result-area"></div>
+    </div>
+
+    <!-- BIND -->
+    <div class="tab-panel" id="tab-bind">
+      <div class="panel-card">
+        <div class="panel-title">🔗 CEK BIND <span class="free-badge">GRATIS</span></div>
+        <div class="input-group"><label>Player ID</label><input type="number" id="inp-bind-id" placeholder="Contoh: 123456789"></div>
+        <div class="input-group"><label>Zone ID</label><input type="number" id="inp-bind-zone" placeholder="Contoh: 5188"></div>
+        <button class="btn-primary" onclick="cekBind()">🔗 CEK BIND</button>
+      </div>
+      <div id="result-area"></div>
+    </div>
+
+    <!-- FIND -->
+    <div class="tab-panel" id="tab-find">
+      <div class="panel-card">
+        <div class="panel-title">🔍 FIND PLAYER <span class="price-badge">Rp 5.000</span></div>
+        <div class="input-group"><label>Nickname</label><input type="text" id="inp-find-nick" placeholder="Masukkan nickname"></div>
+        <div class="input-group"><label>Zone ID</label><input type="number" id="inp-find-zone" placeholder="Contoh: 5188"></div>
+        <button class="btn-primary" onclick="findPlayer()">🔍 CARI PLAYER</button>
+      </div>
+      <div id="result-area"></div>
+    </div>
+
+    <!-- RESET PW -->
+    <div class="tab-panel" id="tab-reset">
+      <div class="panel-card">
+        <div class="panel-title">🔑 RESET PASSWORD <span class="price-badge">Rp 5.000</span></div>
+        <div class="captcha-hint">⚠️ Selesaikan captcha di <a href="https://recnompay.web.id/captcha" target="_blank">RecnomPay</a> dulu, paste tokennya di bawah.</div>
+        <div class="input-group"><label>Email Akun MLBB</label><input type="email" id="inp-reset-email" placeholder="email@mlbb.com"></div>
+        <div class="input-group"><label>Token Captcha</label><input type="text" id="inp-reset-token" placeholder="Paste token dari RecnomPay"></div>
+        <button class="btn-primary" onclick="resetPw()">🔑 RESET PASSWORD</button>
+      </div>
+      <div id="result-area"></div>
+    </div>
+
+    <!-- AKUN -->
+    <div class="tab-panel" id="tab-akun">
+      <div class="panel-card">
+        <div class="panel-title">⚙️ AKUN SAYA</div>
+        <div class="akun-info">
+          <div class="akun-avatar">U</div>
+          <div><div style="font-weight:600;font-size:.95rem" id="user-name-display">-</div><div style="font-size:.75rem;color:var(--text-muted)" id="user-email-display">-</div></div>
+        </div>
+        <div style="font-size:.8rem;color:var(--text-muted);margin-bottom:1rem;padding:.6rem .75rem;background:rgba(0,212,255,.05);border:1px solid var(--border);border-radius:8px;line-height:1.5">
+          Jika login pakai <strong style="color:var(--accent2)">password sementara</strong> dari admin, segera ganti di sini.
+        </div>
+        <div class="input-group"><label>Password Lama / Sementara</label><input type="password" id="inp-pass-lama" placeholder="••••••••"></div>
+        <div class="input-group"><label>Password Baru</label><input type="password" id="inp-pass-baru" placeholder="Min. 6 karakter"></div>
+        <button class="btn-primary" onclick="gantiPassword()">🔒 GANTI PASSWORD</button>
+      </div>
+    </div>
+
+    <!-- ADMIN -->
+    <div class="tab-panel" id="tab-admin">
+      <div class="panel-card" id="admin-login-box">
+        <div class="panel-title">🛡️ PANEL ADMIN</div>
+        <div class="info-box">Masukkan password admin untuk mengakses panel kelola user.</div>
+        <div class="input-group"><label>Password Admin</label><input type="password" id="inp-admin-pass" placeholder="••••••••"></div>
+        <button class="btn-primary" onclick="bukaAdmin()">🔓 BUKA PANEL ADMIN</button>
+      </div>
+      <div id="admin-panel" style="display:none">
+        <div class="panel-card">
+          <div class="panel-title" style="justify-content:space-between">🛡️ KELOLA USER <button class="btn-sm" onclick="renderAdminUsers()">↺ Refresh</button></div>
+          <div style="font-size:.8rem;color:var(--text-muted);margin-bottom:1rem;line-height:1.5;padding:.6rem .75rem;background:rgba(0,212,255,.05);border:1px solid var(--border);border-radius:8px">
+            Klik <b style="color:var(--accent2)">Reset PW</b> untuk set password sementara ke user yang lupa password.
+          </div>
+          <div id="admin-user-list"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="loading-overlay"><div class="loading-spinner"></div><div id="loading-text">Memproses...</div></div>
+<div id="modal"><div class="modal-box"><div id="modal-body"></div></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// =============================================
+// KONFIGURASI — GANTI SESUAI KEBUTUHANMU
+// =============================================
+const JSONBIN_KEY    = '$2a$10$Y5UZKhmt2ANPWeXf52hiXuSulahywHRTZqdK9gpXkiEoc2YE4GrSW';
+const JSONBIN_BIN_ID = '69ca23d036566621a85f3a77';
+const ADMIN_PASSWORD = 'Admin123';     // Ganti password admin kamu
+const JEBRAY_API_KEY  = 'GANTI_JEBRAY_KEY';
+const JEBRAY_BASE_URL = 'https://api.jebray.com';
+const MERCHANT_ID     = 'GANTI_MERCHANT_ID';
+const SECRET_KEY_PAY  = 'GANTI_SECRET_KEY';
+const HARGA = { profil:5000, find:5000, reset:5000, bind:0 };
+const MIN_DEPOSIT = 5000;
+// =============================================
+
+// ---- JSONBIN HELPERS ----
+const BIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
+const HEADERS = {
+  'Content-Type': 'application/json',
+  'X-Master-Key': JSONBIN_KEY,
+  'X-Bin-Versioning': 'false'
+};
+
+const LOCAL_DB_KEY = 'mlbb_localdb';
+
+function readLocalDB() {
+  try {
+    const raw = localStorage.getItem(LOCAL_DB_KEY);
+    return raw ? JSON.parse(raw) : { users: {} };
+  } catch(e) {
+    return { users: {} };
+  }
+}
+
+function writeLocalDB(data) {
+  localStorage.setItem(LOCAL_DB_KEY, JSON.stringify(data));
+}
+
+async function readDB() {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 6000);
+    const r = await fetch(BIN_URL, { headers: HEADERS, signal: controller.signal });
+    clearTimeout(timeout);
+    if (!r.ok) throw new Error('JSONBin response: ' + r.status);
+    const d = await r.json();
+    const data = d.record || { users: {} };
+    // Sync ke localStorage sebagai cache
+    writeLocalDB(data);
+    return data;
+  } catch(e) {
+    console.warn('JSONBin gagal, pakai localStorage:', e.message);
+    return readLocalDB();
+  }
+}
+
+async function writeDB(data) {
+  // Selalu tulis ke localStorage dulu (instant)
+  writeLocalDB(data);
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    const r = await fetch(BIN_URL, {
+      method: 'PUT',
+      headers: HEADERS,
+      body: JSON.stringify(data),
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
+    if (!r.ok) throw new Error('JSONBin write error: ' + r.status);
+  } catch(e) {
+    console.warn('JSONBin write gagal, data tersimpan di localStorage saja:', e.message);
+    // Tidak throw error — data sudah aman di localStorage
+  }
+}
+
+// ---- HASH PASSWORD ----
+async function hashPw(pw) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+// ---- SESSION ----
+let currentUser = null, userData = null;
+
+async function initApp() {
+  const s = localStorage.getItem('mlbb_sess');
+  if (s) {
+    try {
+      const sess = JSON.parse(s);
+      if (sess.expiry && Date.now() > sess.expiry) {
+        localStorage.removeItem('mlbb_sess');
+        showAuth(); return;
+      }
+      currentUser = sess;
+      const db = await readDB();
+      userData = db.users[currentUser.uid];
+      if (!userData) { localStorage.removeItem('mlbb_sess'); showAuth(); return; }
+      updateSaldoUI();
+      updateAkunUI();
+      showApp();
+    } catch(e) {
+      localStorage.removeItem('mlbb_sess');
+      showAuth();
+    }
+  } else {
+    showAuth();
+  }
+}
+
+function updateSaldoUI() {
+  const el = document.getElementById('saldo-display');
+  if (el) el.textContent = `Rp ${(userData?.saldo||0).toLocaleString('id-ID')}`;
+}
+
+function updateAkunUI() {
+  const n = document.getElementById('user-name-display');
+  const e = document.getElementById('user-email-display');
+  if (n) n.textContent = currentUser?.username || '-';
+  if (e) e.textContent = currentUser?.email || '-';
+}
+
+// ---- REGISTER ----
+async function doRegister() {
+  const username = document.getElementById('reg-username').value.trim();
+  const email    = document.getElementById('auth-email').value.trim();
+  const pass     = document.getElementById('auth-pass').value.trim();
+  if (!username||!email||!pass) return showToast('Semua kolom wajib diisi!','error');
+  if (pass.length < 6) return showToast('Password minimal 6 karakter!','error');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showToast('Format email tidak valid!','error');
+  const btn = document.getElementById('auth-reg-btn');
+  btn.disabled = true;
+  try {
+    showLoading('Mendaftarkan akun...');
+    const db = await readDB();
+    // Cek email duplikat
+    const exists = Object.values(db.users||{}).find(u => u.email === email.toLowerCase());
+    if (exists) { hideLoading(); btn.disabled=false; return showToast('Email sudah terdaftar!','error'); }
+    const uid = 'u_' + Date.now() + '_' + Math.random().toString(36).substring(2,7);
+    db.users[uid] = {
+      uid, username, email: email.toLowerCase(),
+      password: await hashPw(pass),
+      saldo: 0, history: [],
+      tempPassword: false, tempPass: null,
+      createdAt: new Date().toISOString()
+    };
+    await writeDB(db);
+    currentUser = { uid, email: email.toLowerCase(), username };
+    userData = db.users[uid];
+    localStorage.setItem('mlbb_sess', JSON.stringify({...currentUser, expiry: Date.now() + 24*60*60*1000}));
+    hideLoading(); btn.disabled=false; updateSaldoUI(); updateAkunUI(); showApp();
+    showToast(`Selamat datang, ${username}!`, 'success');
+  } catch(e) { hideLoading(); btn.disabled=false; showToast('Gagal daftar: ' + e.message, 'error'); }
+}
+
+// ---- LOGIN ----
+async function doLogin() {
+  const email = document.getElementById('auth-email').value.trim();
+  const pass  = document.getElementById('auth-pass').value.trim();
+  if (!email||!pass) return showToast('Email & password wajib diisi!','error');
+  const btn = document.getElementById('auth-login-btn');
+  btn.disabled = true;
+  try {
+    showLoading('Memeriksa akun...');
+    const db = await readDB();
+    const hashed = await hashPw(pass);
+    const uData = Object.values(db.users||{}).find(u => u.email === email.toLowerCase());
+    if (!uData) { hideLoading(); btn.disabled=false; return showToast('Email tidak terdaftar!','error'); }
+    const passOk = uData.password === hashed;
+    const tempOk = uData.tempPassword && uData.tempPass === hashed;
+    if (!passOk && !tempOk) { hideLoading(); btn.disabled=false; return showToast('Password salah!','error'); }
+    currentUser = { uid: uData.uid, email: uData.email, username: uData.username };
+    userData = uData;
+    const remember = document.getElementById('remember-me')?.checked;
+    const expiry = remember ? Date.now() + 7*24*60*60*1000 : Date.now() + 24*60*60*1000;
+    localStorage.setItem('mlbb_sess', JSON.stringify({...currentUser, expiry}));
+    hideLoading(); btn.disabled=false; updateSaldoUI(); updateAkunUI(); showApp();
+    if (tempOk) showToast('⚠️ Login pakai password sementara. Segera ganti di tab Akun!','info');
+    else showToast(`Selamat datang, ${uData.username}!`, 'success');
+  } catch(e) { hideLoading(); btn.disabled=false; showToast('Error: ' + e.message, 'error'); }
+}
+
+// ---- LOGOUT ----
+function doLogout() {
+  localStorage.removeItem('mlbb_sess');
+  currentUser = null; userData = null;
+  showAuth(); showToast('Berhasil keluar!','success');
+}
+
+// ---- GANTI PASSWORD ----
+async function gantiPassword() {
+  const lama = document.getElementById('inp-pass-lama').value.trim();
+  const baru = document.getElementById('inp-pass-baru').value.trim();
+  if (!lama||!baru) return showToast('Isi semua kolom!','error');
+  if (baru.length < 6) return showToast('Password baru minimal 6 karakter!','error');
+  try {
+    showLoading('Mengganti password...');
+    const db = await readDB();
+    const u = db.users[currentUser.uid];
+    const lhash = await hashPw(lama);
+    const ok = u.password===lhash || (u.tempPassword && u.tempPass===lhash);
+    if (!ok) { hideLoading(); return showToast('Password lama salah!','error'); }
+    db.users[currentUser.uid].password = await hashPw(baru);
+    db.users[currentUser.uid].tempPassword = false;
+    db.users[currentUser.uid].tempPass = null;
+    await writeDB(db);
+    userData = db.users[currentUser.uid];
+    hideLoading();
+    document.getElementById('inp-pass-lama').value = '';
+    document.getElementById('inp-pass-baru').value = '';
+    showToast('Password berhasil diganti!','success');
+  } catch(e) { hideLoading(); showToast('Error: ' + e.message, 'error'); }
+}
+
+// ---- ADMIN ----
+function bukaAdmin() {
+  const pw = document.getElementById('inp-admin-pass').value.trim();
+  if (!pw) return showToast('Masukkan password admin!','error');
+  if (pw !== ADMIN_PASSWORD) return showToast('Password admin salah!','error');
+  document.getElementById('admin-login-box').style.display = 'none';
+  document.getElementById('admin-panel').style.display = 'block';
+  renderAdminUsers();
+}
+
+async function renderAdminUsers() {
+  const list = document.getElementById('admin-user-list');
+  list.innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:1rem;font-size:.85rem">Memuat...</div>';
+  try {
+    const db = await readDB();
+    const users = Object.values(db.users||{});
+    list.innerHTML = '';
+    if (!users.length) { list.innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:1rem">Belum ada user.</div>'; return; }
+    users.forEach(u => {
+      const row = document.createElement('div');
+      row.className = 'admin-user-row';
+      row.innerHTML = `
+        <div class="au-info">
+          <span class="au-name">${u.username||'User'}</span>
+          <span class="au-email">${u.email}</span>
+          ${u.tempPassword ? '<span class="au-temp">⚠️ PW Sementara aktif</span>' : ''}
+        </div>
+        <div class="au-right">
+          <span class="au-saldo">Rp ${(u.saldo||0).toLocaleString('id-ID')}</span>
+          <button class="au-btn" onclick="showResetModal('${u.uid}','${(u.username||u.email).replace(/'/g,"\\'")}')">Reset PW</button>
+        </div>`;
+      list.appendChild(row);
+    });
+  } catch(e) { list.innerHTML = `<div style="color:var(--lose);padding:1rem">${e.message}</div>`; }
+}
+
+function showResetModal(uid, name) {
+  document.getElementById('modal-body').innerHTML = `
+    <div>
+      <p style="color:var(--accent);font-family:'Oxanium';font-size:1rem;margin-bottom:.75rem">🔑 RESET PASSWORD USER</p>
+      <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:1rem">User: <b style="color:var(--text)">${name}</b></p>
+      <div class="input-group">
+        <label>Password Sementara</label>
+        <input type="text" id="inp-temp-pw" placeholder="Min. 6 karakter" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:.65rem 1rem;color:var(--text);font-family:monospace;font-size:.9rem;outline:none">
+      </div>
+      <p style="font-size:.75rem;color:var(--text-muted);margin-bottom:1rem;line-height:1.5">Berikan password ini ke user. Mereka bisa ganti sendiri di tab <b style="color:var(--accent)">Akun</b>.</p>
+      <button class="btn-primary" onclick="doResetUserPw('${uid}')">✅ Set Password Sementara</button>
+      <button class="btn-ghost" onclick="closeModal()" style="margin-top:.5rem">Batal</button>
+    </div>`;
+  document.getElementById('modal').style.display = 'flex';
+}
+
+async function doResetUserPw(uid) {
+  const tempPw = document.getElementById('inp-temp-pw').value.trim();
+  if (!tempPw || tempPw.length < 6) return showToast('Password minimal 6 karakter!','error');
+  try {
+    showLoading('Menyimpan...');
+    const db = await readDB();
+    db.users[uid].tempPassword = true;
+    db.users[uid].tempPass = await hashPw(tempPw);
+    await writeDB(db);
+    hideLoading(); closeModal();
+    showToast('Password sementara berhasil diset!','success');
+    renderAdminUsers();
+  } catch(e) { hideLoading(); showToast('Error: ' + e.message, 'error'); }
+}
+
+// ---- DEPOSIT ----
+async function buatDeposit() {
+  const nominal = parseInt(document.getElementById('nominal-deposit').value);
+  if (!nominal || nominal < MIN_DEPOSIT) return showToast(`Minimal deposit Rp ${MIN_DEPOSIT.toLocaleString()}!`,'error');
+  const refId = `WEB${Date.now()}`;
+  try {
+    showLoading('Membuat QRIS...');
+    const r = await fetch(`https://api.tokopay.id/v1/order?merchant=${MERCHANT_ID}&secret=${SECRET_KEY_PAY}&ref_id=${refId}&nominal=${nominal}&metode=QRISREALTIME`);
+    const data = await r.json(); hideLoading();
+    if (data.status === 'Success') showQRIS(data.data.qr_link, refId, nominal);
+    else showToast('Gagal membuat QRIS. Coba lagi.','error');
+  } catch(e) { hideLoading(); showToast('Error: ' + e.message,'error'); }
+}
+
+async function cekPembayaran(refId, nominal) {
+  try {
+    showToast('Mengecek pembayaran...','info');
+    const r = await fetch(`https://api.tokopay.id/v1/order?merchant=${MERCHANT_ID}&secret=${SECRET_KEY_PAY}&ref_id=${refId}&nominal=${nominal}&metode=QRISREALTIME`);
+    const data = await r.json();
+    if (data.data && (data.data.status==='Success'||data.data.status==='Completed')) {
+      showLoading('Menyimpan saldo...');
+      const db = await readDB();
+      db.users[currentUser.uid].saldo = (db.users[currentUser.uid].saldo||0) + nominal;
+      db.users[currentUser.uid].history = db.users[currentUser.uid].history || [];
+      db.users[currentUser.uid].history.push({ type:'MASUK', amount:nominal, desc:'Deposit QRIS', time: new Date().toLocaleString('id-ID') });
+      await writeDB(db);
+      userData = db.users[currentUser.uid];
+      hideLoading(); updateSaldoUI(); closeModal();
+      showToast(`✅ Deposit Rp ${nominal.toLocaleString()} berhasil!`,'success');
+    } else { showToast('Belum terbayar. Coba lagi.','error'); }
+  } catch(e) { showToast('Error: ' + e.message,'error'); }
+}
+
+// ---- DEDUCT SALDO ----
+async function deductSaldo(amount, desc) {
+  if ((userData?.saldo||0) < amount) {
+    showToast(`Saldo tidak cukup! Butuh Rp ${amount.toLocaleString()}`,'error');
+    return false;
+  }
+  const db = await readDB();
+  db.users[currentUser.uid].saldo -= amount;
+  db.users[currentUser.uid].history = db.users[currentUser.uid].history || [];
+  db.users[currentUser.uid].history.push({ type:'KELUAR', amount, desc, time: new Date().toLocaleString('id-ID') });
+  await writeDB(db);
+  userData = db.users[currentUser.uid];
+  updateSaldoUI();
+  return true;
+}
+
+// ---- FITUR MLBB ----
+async function cekProfil() {
+  const pid = document.getElementById('inp-profil-id').value.trim();
+  if (!pid) return showToast('Masukkan Player ID!','error');
+  if (!await deductSaldo(HARGA.profil, `Cek Profil ID ${pid}`)) return;
+  try {
+    showLoading('Mengambil data profil...');
+    const resp = await fetch(`${JEBRAY_BASE_URL}/tools/check`, { method:'POST', headers:{'X-API-Key':JEBRAY_API_KEY,'Content-Type':'application/json'}, body:JSON.stringify({player_id:parseInt(pid)}) });
+    const data = await resp.json(); hideLoading();
+    if (data.success) renderProfil(data.data); else showToast('Data tidak ditemukan!','error');
+  } catch(e) { hideLoading(); showToast('Error: '+e.message,'error'); }
+}
+
+async function cekBind() {
+  const pid = document.getElementById('inp-bind-id').value.trim();
+  const zid = document.getElementById('inp-bind-zone').value.trim();
+  if (!pid||!zid) return showToast('Isi Player ID & Zone ID!','error');
+  try {
+    showLoading('Mengambil data bind...');
+    const resp = await fetch(`${JEBRAY_BASE_URL}/tools/cek-bind`, { method:'POST', headers:{'X-API-Key':JEBRAY_API_KEY,'Content-Type':'application/json'}, body:JSON.stringify({player_id:String(pid),zone_id:String(zid)}) });
+    const data = await resp.json(); hideLoading();
+    if (data.success) renderBind(data.data); else showToast('Data tidak ditemukan!','error');
+  } catch(e) { hideLoading(); showToast('Error: '+e.message,'error'); }
+}
+
+async function findPlayer() {
+  const nick = document.getElementById('inp-find-nick').value.trim();
+  const zid  = document.getElementById('inp-find-zone').value.trim();
+  if (!nick||!zid) return showToast('Isi Nickname & Zone ID!','error');
+  if (!await deductSaldo(HARGA.find, `Find Player ${nick}`)) return;
+  try {
+    showLoading('Mencari player...');
+    const resp = await fetch(`${JEBRAY_BASE_URL}/tools/find`, { method:'POST', headers:{'X-API-Key':JEBRAY_API_KEY,'Content-Type':'application/json'}, body:JSON.stringify({nickname:nick,zone_id:parseInt(zid)}) });
+    const data = await resp.json(); hideLoading();
+    if (data.success) renderFind(data.data); else showToast('Player tidak ditemukan!','error');
+  } catch(e) { hideLoading(); showToast('Error: '+e.message,'error'); }
+}
+
+}
+
+async function resetPw() {
+  const email = document.getElementById('inp-reset-email').value.trim();
+  const token = document.getElementById('inp-reset-token').value.trim();
+  if (!email||!token) return showToast('Isi email & token captcha!','error');
+  if (!await deductSaldo(HARGA.reset, `Reset PW ${email}`)) return;
+  try {
+    showLoading('Memproses reset password...');
+    const resp = await fetch(`${JEBRAY_BASE_URL}/tools/reset-pw`, { method:'POST', headers:{'X-API-Key':JEBRAY_API_KEY,'Content-Type':'application/json'}, body:JSON.stringify({email:email.trim(),captcha:token}) });
+    const data = await resp.json(); hideLoading();
+    if (data.success) showToast('✅ Reset berhasil! Cek email kamu.','success');
+    else showToast('Gagal: '+(data.message||'Unknown error'),'error');
+  } catch(e) { hideLoading(); showToast('Error: '+e.message,'error'); }
+}
+
+// ---- RENDER ----
+function renderProfil(d) {
+  const squad = d.squad?.name ? `[${d.squad.tag}] ${d.squad.name}` : '-';
+  const favH  = (d.favorite_heroes?.all_time||[]).slice(0,3).map(h=>`<span class="tag">${h.name} (${h.win_rate}%)</span>`).join('')||'-';
+  showResult(`<div class="result-card"><div class="result-header"><span>👤</span><span>PROFIL PLAYER</span></div><div class="result-grid">
+    <div class="result-item"><span class="rl">Nickname</span><span class="rv">${d.nickname}</span></div>
+    <div class="result-item"><span class="rl">Player ID</span><span class="rv mono">${d.player_id}</span></div>
+    <div class="result-item"><span class="rl">Server</span><span class="rv mono">${d.server_id}</span></div>
+    <div class="result-item"><span class="rl">Level</span><span class="rv">${d.level||'-'}</span></div>
+    <div class="result-item"><span class="rl">Rank</span><span class="rv">${d.rank||'-'}</span></div>
+    <div class="result-item"><span class="rl">Squad</span><span class="rv">${squad}</span></div>
+    <div class="result-item"><span class="rl">Total Match</span><span class="rv">${d.combat?.total_matches||'0'}</span></div>
+    <div class="result-item"><span class="rl">Win Rate</span><span class="rv accent">${d.combat?.win_rate||'0'}%</span></div>
+    <div class="result-item"><span class="rl">Hero</span><span class="rv">${d.collection?.heroes||'0'}</span></div>
+    <div class="result-item"><span class="rl">Skin</span><span class="rv">${d.collection?.skins||'0'}</span></div>
+    <div class="result-item full"><span class="rl">Hero Favorit</span><div class="rv tags">${favH}</div></div>
+  </div></div>`);
+}
+
+function renderBind(d) {
+  const c = v => (!v||String(v).includes('Not')||v==='0') ? '<span style="color:var(--lose)">❌</span>' : `<span style="color:var(--win)">✅ ${v}</span>`;
+  showResult(`<div class="result-card"><div class="result-header"><span>🔗</span><span>CEK BIND AKUN</span></div><div class="result-grid">
+    <div class="result-item"><span class="rl">Nickname</span><span class="rv">${d.nickname}</span></div>
+    <div class="result-item"><span class="rl">Player ID</span><span class="rv mono">${d.player_id}</span></div>
+    <div class="result-item"><span class="rl">Moonton</span>${c(d['Moonton'])}</div>
+    <div class="result-item"><span class="rl">Facebook</span>${c(d['Facebook'])}</div>
+    <div class="result-item"><span class="rl">Google Play</span>${c(d['Google Play'])}</div>
+    <div class="result-item"><span class="rl">Telegram</span>${c(d['Telegram'])}</div>
+    <div class="result-item"><span class="rl">TikTok</span>${c(d['TikTok'])}</div>
+    <div class="result-item"><span class="rl">WhatsApp</span>${c(d['WhatsApp'])}</div>
+    <div class="result-item"><span class="rl">Apple ID</span>${c(d['AppleID'])}</div>
+    <div class="result-item"><span class="rl">VK</span>${c(d['VK'])}</div>
+  </div></div>`);
+}
+
+function renderFind(d) {
+  showResult(`<div class="result-card"><div class="result-header"><span>🔍</span><span>FIND PLAYER</span></div><div class="result-grid">
+    <div class="result-item"><span class="rl">Nickname</span><span class="rv">${d.nickname}</span></div>
+    <div class="result-item"><span class="rl">Player ID</span><span class="rv mono">${d.player_id}</span></div>
+    <div class="result-item"><span class="rl">Server ID</span><span class="rv mono">${d.server_id}</span></div>
+    <div class="result-item"><span class="rl">Level</span><span class="rv">${d.level||'-'}</span></div>
+    <div class="result-item"><span class="rl">Rank</span><span class="rv">${d.rank||'-'}</span></div>
+  </div></div>`);
+}
+
+
+// ---- UI HELPERS ----
+function showResult(html) {
+  const el = document.getElementById('result-area');
+  el.innerHTML = html; el.style.display = 'block';
+  el.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+function showQRIS(qrUrl, refId, nominal) {
+  document.getElementById('modal-body').innerHTML = `
+    <div style="text-align:center">
+      <p style="color:var(--accent);font-family:'Oxanium';font-size:1.1rem;margin-bottom:1rem">SCAN QRIS</p>
+      <img src="${qrUrl}" style="width:220px;border-radius:12px;border:2px solid var(--accent)">
+      <p style="margin:1rem 0;font-size:.9rem;color:var(--text-muted)">Nominal: <b style="color:var(--text)">Rp ${nominal.toLocaleString('id-ID')}</b></p>
+      <button class="btn-primary" onclick="cekPembayaran('${refId}',${nominal})">✅ Saya Sudah Bayar</button>
+      <button class="btn-ghost" onclick="closeModal()" style="margin-top:.5rem">Batal</button>
+    </div>`;
+  document.getElementById('modal').style.display = 'flex';
+}
+
+function closeModal() { document.getElementById('modal').style.display = 'none'; }
+function showLoading(msg) { document.getElementById('loading-text').textContent = msg||'Memproses...'; document.getElementById('loading-overlay').style.display = 'flex'; }
+function hideLoading() { document.getElementById('loading-overlay').style.display = 'none'; }
+function showToast(msg, type='info') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = `toast show ${type}`;
+  setTimeout(()=>t.classList.remove('show'), 3500);
+}
+function showAuth() { document.getElementById('auth-screen').style.display='flex'; document.getElementById('app-screen').style.display='none'; }
+function showApp()  { document.getElementById('auth-screen').style.display='none';  document.getElementById('app-screen').style.display='block'; }
+
+function switchAuthMode(mode) {
+  document.querySelectorAll('.auth-tab').forEach(b=>b.classList.remove('active'));
+  document.querySelector(`[data-mode="${mode}"]`).classList.add('active');
+  document.getElementById('reg-extra').style.display   = mode==='register'?'block':'none';
+  document.getElementById('auth-login-btn').style.display = mode==='login'?'block':'none';
+  document.getElementById('auth-reg-btn').style.display   = mode==='register'?'block':'none';
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+  document.getElementById(`tab-${tab}`).classList.add('active');
+  document.querySelectorAll('#result-area').forEach(el=>el.style.display='none');
+}
+
+function setNominal(val, btn) {
+  document.getElementById('nominal-deposit').value = val;
+  document.querySelectorAll('.nominal-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function togglePw(id, btn) {
+  const inp = document.getElementById(id);
+  if (inp.type === 'password') { inp.type = 'text'; btn.style.color = 'var(--accent)'; }
+  else { inp.type = 'password'; btn.style.color = 'var(--text-muted)'; }
+}
+
+// Start
+initApp();
+</script>
+</body>
+</html>
